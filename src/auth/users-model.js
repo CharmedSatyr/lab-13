@@ -89,11 +89,14 @@ users.methods.generateToken = function() {
   return jwt.sign(token, process.env.SECRET, { expiresIn: '15m' });
 };
 
-// Delete the `Issued At` claim and do not include `expiresIn` option
+// Delete the `Issued At` and `Expires` claims and do not include `expiresIn` option
 users.methods.refreshKey = function(key) {
   const refreshed = Object.assign({}, key);
   if (refreshed.iat) {
     delete refreshed.iat;
+  }
+  if (refreshed.exp) {
+    delete refreshed.exp;
   }
   return jwt.sign(refreshed, process.env.SECRET);
 };
