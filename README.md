@@ -125,7 +125,7 @@ This method parses the token using the `jwt.verify` method.
 It takes the user's `id` from the parsed token and uses mongoose's `findById(id)` method to locate the user's record in the database. Once the promise of `findById` resolves into the `user` object, that object is returned to the `_authBearer` method in `middleware.js`.
 
 ##### `users.refreshKey(key)` method
-This method creates a new object from the key (a JWT token) it receives. It then deletes the `iat` property from the new key, which corresponds to the "Issued At" JWT payload claim. It then uses `jwt.sign` to re-sign the key. This way of handling the key is intended to make it harder to determine the age of the token or cause the token to expire due to age.
+This method creates a new object from the key (a JWT token) it receives. It then deletes the `iat` and `exp` properties from the new key, which corresponds to the "Issued At" and "Expiration" JWT payload claims. It then uses `jwt.sign` to re-sign the key. This way of handling the key is intended to make it harder to determine the age of the token or cause the token to expire due to age.
 
 -----
 
@@ -156,21 +156,21 @@ You will receive a `token` in return.
 ###### Signing In
 Using the `httpie` package or a similar program, send the following command to the server:
 
-* `http post :3000/signin "Authorization: Bearer *token*"`
+* `http post :3000/signin "Authorization: Bearer <token>"`
 
-Substitute the `token` received when signing up for `token`.
+Substitute the `token` received when signing up for `<token>` in the above command.
 
 This will return a token that expires in 15 minutes. You can use it for signing in before it expires.
 
 
-###### Obtaining a permanent Access Key
+###### Obtaining a permanent Authentication Key
 Using the `httpie` package or a similar program, send the following command to the server:
 
-* `http post :3000/key "Authorization: Bearer *token*"`
+* `http post :3000/key "Authorization: Bearer <token>"`
 
-Substitute the `token` received when signing up for `token`.
+Substitute a valid `token` for `<token>` in the above command.
 
-This will return a token that does not expire and which has its "Issued At" JWT payload claim reset on each login, making it difficult to tell the age of the access key.
+This will return a token that does not expire and which has its "Issued At" and "Expires" JWT payload claims deleted or reset on each login, making it difficult to tell the age of the authentication key.
 
 #### Tests
 * How do you run tests?
