@@ -1,14 +1,22 @@
 'use strict';
 
 const User = require('./users-model.js');
-
 module.exports = (req, res, next) => {
   try {
     let [authType, authString] = req.headers.authorization.split(/\s+/);
 
+    if (req.url === '/key') {
+      if (authType.toLowerCase() === 'bearer') {
+        return _authKey(authString);
+      }
+      return _authError();
+    }
+
     switch (authType.toLowerCase()) {
       case 'basic':
         return _authBasic(authString);
+      case 'bearer':
+        return _authBearer(authString);
       default:
         return _authError();
     }
@@ -25,6 +33,34 @@ module.exports = (req, res, next) => {
 
     return User.authenticateBasic(auth)
       .then(user => _authenticate(user))
+      .catch(next);
+  }
+
+  function _authBearer(auth) {
+    // auth is the bearer token
+    // header.payload.signature
+    // xxxxxx.yyyyyy.zzzzzzz
+    return User.authenticateBearer(auth)
+      .then(user => _authenticate(user))
+      .catch(next);
+  }
+
+  function _authKey(key) {
+    // auth is the bearer token
+    // header.payload.signature
+    // xxxxxx.yyyyyy.zzzzzzz
+    return User.authenticateKey(key)
+      .then(result => {
+        const { user } = result;
+        const { key } = result;
+        if (user) {
+          req.user = user;
+          req.token = user.refreshKey(key);
+          next();
+        } else {
+          _authError();
+        }
+      })
       .catch(next);
   }
 
