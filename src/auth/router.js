@@ -35,4 +35,10 @@ authRouter.get('/oauth', (req, res, next) => {
     .catch(next);
 });
 
+// This route creates a permanent access key
+authRouter.post('/key', auth, (req, res, next) => {
+  res.cookie('auth', req.token);
+  res.status(200).send(req.token);
+});
+
 module.exports = authRouter;
