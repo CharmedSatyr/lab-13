@@ -45,6 +45,29 @@ users.statics.createFromOauth = function(email) {
   );
 };
 
+users.statics.authenticateKey = function(token) {
+  const parsedKey = jwt.verify(token, process.env.SECRET);
+  console.log('parsedKey:', parsedKey);
+  let { id } = parsedKey;
+  // Sends back user and key rather than only user
+  return this.findById(id)
+    .then(user => ({ user, key: parsedKey }))
+    .catch(error => {
+      throw error;
+    });
+};
+
+users.statics.authenticateBearer = function(token) {
+  const parsedToken = jwt.verify(token, process.env.SECRET);
+  console.log('parsedToken:', parsedToken);
+  let { id } = parsedToken;
+  return this.findById(id)
+    .then(user => user)
+    .catch(error => {
+      throw error;
+    });
+};
+
 users.statics.authenticateBasic = function(auth) {
   let query = { username: auth.username };
   return this.findOne(query)
@@ -59,12 +82,18 @@ users.methods.comparePassword = function(password) {
 };
 
 users.methods.generateToken = function() {
-  let token = {
+  const token = {
     id: this._id,
     role: this.role,
   };
+  return jwt.sign(token, process.env.SECRET, { expiresIn: '15m' });
+};
 
-  return jwt.sign(token, process.env.SECRET);
+// Delete the `Issued At` claim and do not include `expiresIn` option
+users.methods.refreshKey = function(key) {
+  const refreshed = Object.assign({}, key);
+  delete refreshed.iat;
+  return jwt.sign(refreshed, process.env.SECRET);
 };
 
 module.exports = mongoose.model('users', users);
