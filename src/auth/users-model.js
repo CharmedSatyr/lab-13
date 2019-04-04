@@ -92,7 +92,9 @@ users.methods.generateToken = function() {
 // Delete the `Issued At` claim and do not include `expiresIn` option
 users.methods.refreshKey = function(key) {
   const refreshed = Object.assign({}, key);
-  delete refreshed.iat;
+  if (refreshed.iat) {
+    delete refreshed.iat;
+  }
   return jwt.sign(refreshed, process.env.SECRET);
 };
 
